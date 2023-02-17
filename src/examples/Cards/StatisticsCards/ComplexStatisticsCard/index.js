@@ -20,14 +20,15 @@ import PropTypes from "prop-types";
 // @mui material components
 import Card from "@mui/material/Card";
 import Divider from "@mui/material/Divider";
-import Icon from "@mui/material/Icon";
+// import Icon from "@mui/material/Icon";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-// import image_3phase from "../../../../assets/images/MyProject/2phase.png";
+// import imgPhase_2 from "../../../../assets/images/MyProject/2phase.png";
 
-function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
+
+function ComplexStatisticsCard({ color, title, count, icon_img }) {
   return (
     <Card>
       <MDBox display="flex" justifyContent="space-between" pt={1} px={2}>
@@ -47,7 +48,8 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
           {/* <Icon fontSize="" color="inherit">
             {icon}
           </Icon> */}
-          <div> con cha</div>
+
+          <img width="40px" height="40px" src={icon_img}></img>
         </MDBox>
         <MDBox textAlign="right" lineHeight={1.25}>
           <MDTypography variant="button" fontWeight="light" color="text">
@@ -55,10 +57,10 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
           </MDTypography>
           <MDTypography variant="h4">{count}</MDTypography>
         </MDBox>
-        
+
       </MDBox>
       <Divider />
-      <MDBox pb={2} px={2}>
+      {/* <MDBox pb={2} px={2}>
         <MDTypography component="p" variant="button" color="text" display="flex">
           <MDTypography
             component="span"
@@ -70,7 +72,7 @@ function ComplexStatisticsCard({ color, title, count, percentage, icon }) {
           </MDTypography>
           &nbsp;{percentage.label}
         </MDTypography>
-      </MDBox>
+      </MDBox> */}
     </Card>
   );
 }
@@ -113,7 +115,7 @@ ComplexStatisticsCard.propTypes = {
     amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     label: PropTypes.string,
   }),
-  icon: PropTypes.node.isRequired,
+  // icon: PropTypes.node.isRequired,
 };
 
 export default ComplexStatisticsCard;
