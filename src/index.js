@@ -21,10 +21,15 @@ import App from "App";
 // Material Dashboard 2 React Context Provider
 import { MaterialUIControllerProvider } from "context";
 
+//  provider socket
+import { SocketProvider, SocketContext } from "./SocketContext";
+
 ReactDOM.render(
   <BrowserRouter>
     <MaterialUIControllerProvider>
+    <SocketProvider>
       <App />
+      </SocketProvider>
     </MaterialUIControllerProvider>
   </BrowserRouter>,
   document.getElementById("root")

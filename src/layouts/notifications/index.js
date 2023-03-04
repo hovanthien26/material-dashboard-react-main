@@ -13,11 +13,33 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // @mui material components
-import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
+// import Grid from "@mui/material/Grid";
+// import Card from "@mui/material/Card";
+
+// import { 
+//   Box, 
+//   Typography, 
+//   Table, 
+//   TableHead, 
+//   TableBody, 
+//   TableCell, 
+//   TableRow 
+// } from '@material-ui/core';
+
+//sửa lại thư viện
+import { Grid, Card, Box, Typography, Table, TableHead, TableBody, TableCell, TableRow } from '@mui/material';
+import moment from 'moment';
+//thêm thư viện chọn ngày chọn giờ
+// import { DatePicker, TimePicker } from '@material-ui/lab';
+
+// cài thêm thư viện "npm install @mui/lab"
+// import AdapterDateFns from '@mui/lab/AdapterDateFns';
+// import LocalizationProvider from '@mui/lab/LocalizationProvider';
+// import { DatePicker } from '@mui/x-date-pickers';
+// import TimePicker from '@mui/lab/TimePicker';
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -31,7 +53,24 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
+// import { DatePicker, TimePicker } from '@mui/lab';
+import { TextField, Button } from "@mui/material"
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { addDays, setHours, setMinutes } from 'date-fns';
+
+
+
+
 function Notifications() {
+  //data alarm
+  const [dataAlarm, setDataAlarm] = useState([]);
+  // pick date time
+  const [startDate, setStartDate] = useState( setHours(setMinutes(new Date(), 0), 0));
+ 
+  const [endDate, setEndDate] = useState(new Date());
+
   const [successSB, setSuccessSB] = useState(false);
   const [infoSB, setInfoSB] = useState(false);
   const [warningSB, setWarningSB] = useState(false);
@@ -110,42 +149,108 @@ function Notifications() {
     />
   );
 
+  // xử lí API 
+  useEffect(() => {
+    console.log("fetch nè con đũy")
+    fetch('http://localhost:3005/api/data')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        // Xử lý dữ liệu trả về ở đây
+        setDataAlarm(data);
+
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+
+  }, [])
+  //nhấn nút để lấy dữ liệu
+  const handleFindButtonClick = () => {
+    console.log(`http://yourserver.com/data?startDate=${startDate}&endDate=${endDate}`)
+    // gửi yêu cầu fetch dữ liệu từ server với startDate và endDate đã chọn
+    fetch(`http://yourserver.com/data?startDate=${startDate}&endDate=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        // xử lý dữ liệu trả về từ server
+        setDataAlarm(data);
+      })
+      .catch(error => {
+        console.error('Error fetching data from server:', error);
+      });
+  }
+
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
+      <Grid>
+        con cho nhác
+
+      </Grid>
       <MDBox mt={6} mb={3}>
         <Grid container spacing={3} justifyContent="center">
           <Grid item xs={12} lg={8}>
             <Card>
-              <MDBox p={2}>
-                <MDTypography variant="h5">Alerts</MDTypography>
-              </MDBox>
-              <MDBox pt={2} px={2}>
-                <MDAlert color="primary" dismissible>
-                  {alertContent("primary")}
-                </MDAlert>
-                <MDAlert color="secondary" dismissible>
-                  {alertContent("secondary")}
-                </MDAlert>
-                <MDAlert color="success" dismissible>
-                  {alertContent("success")}
-                </MDAlert>
-                <MDAlert color="error" dismissible>
-                  {alertContent("error")}
-                </MDAlert>
-                <MDAlert color="warning" dismissible>
-                  {alertContent("warning")}
-                </MDAlert>
-                <MDAlert color="info" dismissible>
-                  {alertContent("info")}
-                </MDAlert>
-                <MDAlert color="light" dismissible>
-                  {alertContent("light")}
-                </MDAlert>
-                <MDAlert color="dark" dismissible>
-                  {alertContent("dark")}
-                </MDAlert>
-              </MDBox>
+            {console.log("re-render",setHours(setMinutes(new Date(), 30), 20))}
+              <Box p={2}>
+                <Typography variant="h5">
+                  From&nbsp;
+                  <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    maxDate={new Date()}
+                    showTimeSelect
+                    // maxTime={startDate.getDate() === new Date().getDate() ? setHours(setMinutes(new Date(), new Date().getMinutes()), new Date().getHours()) : null}
+
+                  //  minTime={new Date()}
+                      timeIntervals={15}
+                    dateFormat="dd/MM/yyyy h:mm aa"
+                  />
+                  &nbsp;To&nbsp;
+                  <DatePicker
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    maxDate={new Date()}
+                    minDate={startDate}
+                    showTimeSelect
+                    timeIntervals={15}
+                    dateFormat="dd/MM/yyyy h:mm aa"
+                  />
+                   <Button variant="contained" color="inherit" onClick={handleFindButtonClick}>Find</Button>
+
+                  {/* <TextField type="date" 
+                  variant="outlined" 
+                  dateFormat='DD/MM/yyy'
+                  maxDate={new Date()}
+                  value = {new Date()}/>
+                  <TextField type="time" variant="outlined" />
+                  &nbsp;To&nbsp;
+                  <TextField type="date" variant="outlined" />
+                  <TextField type="time" variant="outlined" />
+                  &nbsp;
+                  <Button variant="contained" color="primary">
+                    Find
+                  </Button> */}
+                </Typography>
+              </Box>
+              <Table>
+                <TableBody>
+                  <TableCell align="center" ><Typography variant="h5">Type</Typography></TableCell>
+                  <TableCell align="center" ><Typography variant="h5">Time</Typography></TableCell>
+                  <TableCell align="center" ><Typography variant="h5">Name</Typography></TableCell>
+                  <TableCell align="center" ><Typography variant="h5">Value</Typography></TableCell>
+                  {dataAlarm.map((item) => (
+                    <TableRow key={item.parameter.createdAt}>
+                      <TableCell align="center" style={{ color: item.type === 'HI' || item.type === 'LO' ? '#FFCC00' : 'red' }}>{item.type}</TableCell>
+                      <TableCell align="center" style={{ color: item.type === 'HI' || item.type === 'LO' ? '#FFCC00' : 'red' }}>{moment(item.parameter.createdAt).format('DD/MM/YYYY hh:mm A')}</TableCell>
+                      <TableCell align="center" style={{ color: item.type === 'HI' || item.type === 'LO' ? '#FFCC00' : 'red' }}>{item.parameter.name}</TableCell>
+                      <TableCell align="center" style={{ color: item.type === 'HI' || item.type === 'LO' ? '#FFCC00' : 'red' }}>{item.parameter.value}</TableCell>
+
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </Card>
           </Grid>
 

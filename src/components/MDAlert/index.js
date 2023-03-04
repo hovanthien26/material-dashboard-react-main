@@ -28,10 +28,15 @@ import MDBox from "components/MDBox";
 import MDAlertRoot from "components/MDAlert/MDAlertRoot";
 import MDAlertCloseIcon from "components/MDAlert/MDAlertCloseIcon";
 
-function MDAlert({ color, dismissible, children, ...rest }) {
+function MDAlert({ color, dismissible, children, onDismiss, ...rest }) {
   const [alertStatus, setAlertStatus] = useState("mount");
 
-  const handleAlertStatus = () => setAlertStatus("fadeOut");
+  const handleAlertStatus = () => {
+    setAlertStatus("fadeOut");
+    if (onDismiss) {
+      onDismiss();
+    }
+  };
 
   // The base template for the alert
   const alertTemplate = (mount = true) => (

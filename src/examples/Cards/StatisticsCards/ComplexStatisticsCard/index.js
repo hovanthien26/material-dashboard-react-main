@@ -26,11 +26,18 @@ import Divider from "@mui/material/Divider";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 // import imgPhase_2 from "../../../../assets/images/MyProject/2phase.png";
+import {useState, useEffect, memo} from 'react';
 
 
 function ComplexStatisticsCard({ color, title, count, icon_img }) {
+  // const [countChange, setCountChange] = useState(0)
+  // useEffect(()=>{
+  //   setCountChange(count)
+  // },[count]);
+
   return (
     <Card>
+      {console.log("vào rồi nè dcmn",count)}
       <MDBox display="flex" justifyContent="space-between" pt={1} px={2}>
         <MDBox
           variant="gradient"
@@ -118,4 +125,4 @@ ComplexStatisticsCard.propTypes = {
   // icon: PropTypes.node.isRequired,
 };
 
-export default ComplexStatisticsCard;
+export default memo(ComplexStatisticsCard);

@@ -13,7 +13,8 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo, useRef } from "react";
+import moment from 'moment';
 
 // react-router components
 import { useLocation, Link } from "react-router-dom";
@@ -27,7 +28,8 @@ import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import Icon from "@mui/material/Icon";
-
+//thêm icon
+import ExpandMore from '@mui/icons-material/ExpandMore';
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDInput from "components/MDInput";
@@ -53,7 +55,76 @@ import {
   setOpenConfigurator,
 } from "context";
 
+//toast
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+//context soket
+//Provider
+import { useContext } from "react"
+import { SocketContext } from "../../../SocketContext";
+
+//tỰ THÊM NÚT NHẤN
+import Button from '@mui/material/Button';
+//Di chuyển tới page notification
+import NotificationsPage from "../../../layouts/notifications"
+import { Route, Routes } from "react-router-dom";
+import Grid from "@mui/material/Grid";
+import MDAlert from "../../../components/MDAlert"
+import MDTypography from "../../../components/MDTypography";
+
+
 function DashboardNavbar({ absolute, light, isMini }) {
+  useEffect(() => {
+    console.log("re-render Navbar")
+    setNotifications(notificationsRef.current)
+  }, []);
+
+  // const notificationsRef = useRef([]);
+  const [notifications, setNotifications] = useState([]);
+  //nút nhấn xem toàn bộ thông báo 
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  //xóa alarm
+  const [confirmClearNotifications, setConfirmClearNotifications] = useState(false);
+  //đi tới trang notification
+  // const history = useHistory();
+
+
+  const { socket, notificationsRef, arraydata,} = useContext(SocketContext);
+  const idAlarmRef = useRef(0);
+  console.log("re-render",idAlarmRef);
+
+  const handleServerWarning = useCallback((myObject) => {
+    //cài thêm thu viện moment
+    const dateString = moment(myObject.parameter.createdAt).format('DD/MM/YYYY hh:mm A');
+    console.log(dateString);
+    const finalString = `${dateString} | ${myObject.parameter.name} | Value = ${myObject.parameter.value}`;
+    let type_toast = 'error';
+    // setNotifications((prev => [...prev, { type: myObject.type, print: finalString }]));
+    notificationsRef.current = [{id: idAlarmRef.current++ , type: myObject.type, print: finalString }, ...notificationsRef.current];
+    setNotifications(notificationsRef.current)
+    console.log(notificationsRef.current)
+    if (myObject.type === 'High' || myObject.type === 'Low') {
+      type_toast = 'warn';
+    }
+    toast[type_toast](finalString, {
+      position: 'bottom-right',
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.on('server warning', handleServerWarning);
+    return () => {
+      socket.off('server warning', handleServerWarning);
+    };
+  }, []);
+
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
@@ -92,6 +163,43 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleCloseMenu = () => setOpenMenu(false);
 
   // Render the notifications menu
+  const displayNotification = ({id, type, print }) => {
+    let action;
+
+    type === 'High' || type === 'Low' ?  action = "warning" : action ="error"
+    // if (type === 'High' || type === 'Low') {
+      return (
+        // <NotificationItem
+        //   icon={<Icon>warning</Icon>}
+        //   style={{ backgroundColor: 'yellow' }}
+        //   title={`${type}: ${print}`}
+        //   dismissible 
+        //    />   
+       <MDAlert color={action} dismissible 
+       onDismiss={() => {
+        notificationsRef.current = notifications.filter(obj => obj.id !== id)
+        setNotifications(notificationsRef.current);
+        console.log("xóa rồi nè,",notifications);
+        console.log("id xóa,",id);
+      }}
+       >
+        <MDTypography variant="body2" color="white">
+      <MDTypography component="a" href="#" variant="body2" fontWeight="medium" color="white">
+      {type}: {" "}
+      </MDTypography>
+      {print}
+    </MDTypography>
+
+       </MDAlert>
+      );
+    } 
+  
+
+  // Add this function to handle the "confirm" button click
+  const handleConfirmClearNotifications = () => {
+    notificationsRef.current = [];
+    setNotifications([]);
+  };
   const renderMenu = () => (
     <Menu
       anchorEl={openMenu}
@@ -104,9 +212,19 @@ function DashboardNavbar({ absolute, light, isMini }) {
       onClose={handleCloseMenu}
       sx={{ mt: 2 }}
     >
-      <NotificationItem icon={<Icon>email</Icon>} title="Check new messages" />
-      <NotificationItem icon={<Icon>podcasts</Icon>} title="Manage Podcast sessions" />
-      <NotificationItem icon={<Icon>shopping_cart</Icon>} title="Payment successfully completed" />
+
+      {showAllNotifications
+        ? notifications.map((n) => displayNotification(n))
+        : notifications.slice(0, 5).map((n) => displayNotification(n))}
+      
+        <Button onClick={() => setShowAllNotifications(!showAllNotifications)}>
+          <Icon sx={iconsStyle}>{showAllNotifications ? 'expand_less' : 'expand_more'}</Icon>
+        </Button>
+        <Button onClick={handleConfirmClearNotifications}>Confirm</Button>
+        <Link to="/notifications">
+          <Button>To Notifications</Button>
+        </Link>
+  
     </Menu>
   );
 
@@ -124,6 +242,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
   });
 
   return (
+
+
     <AppBar
       position={absolute ? "absolute" : navbarType}
       color="inherit"
@@ -140,9 +260,13 @@ function DashboardNavbar({ absolute, light, isMini }) {
             </MDBox>
             <MDBox color={light ? "white" : "inherit"}>
               <Link to="/authentication/sign-in/basic">
+
+
                 <IconButton sx={navbarIconButton} size="small" disableRipple>
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
+
+
               </Link>
               <IconButton
                 size="small"
@@ -164,6 +288,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               >
                 <Icon sx={iconsStyle}>settings</Icon>
               </IconButton>
+
               <IconButton
                 size="small"
                 disableRipple
@@ -175,12 +300,38 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 onClick={handleOpenMenu}
               >
                 <Icon sx={iconsStyle}>notifications</Icon>
+                {
+                  notifications.length > 0 &&
+                  <div style={{
+                    width: '13px',
+                    height: '13px',
+                    backgroundColor: 'red',
+                    borderRadius: '50%',
+                    padding: '5px',
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'absolute',
+                    top: '0px',
+                    right: '4px'
+                  }}>
+                    {notifications.length}
+                  </div>
+                }
+
               </IconButton>
               {renderMenu()}
+
+
+
             </MDBox>
           </MDBox>
         )}
       </Toolbar>
+      <Routes>
+        <Route path="/notifications" element={<NotificationsPage />} />
+      </Routes>
     </AppBar>
   );
 }
@@ -199,4 +350,4 @@ DashboardNavbar.propTypes = {
   isMini: PropTypes.bool,
 };
 
-export default DashboardNavbar;
+export default memo(DashboardNavbar);
